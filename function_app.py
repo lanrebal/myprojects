@@ -21,7 +21,7 @@ logging.basicConfig(level=logging.INFO)
 
 app = func.FunctionApp()
 
-@app.timer_trigger(schedule="0 0 * * * *", arg_name="myTimer", run_on_startup=False, use_monitor=False) 
+@app.timer_trigger(schedule="0 0 * * * *", arg_name="myTimer", run_on_startup=False, use_monitor=False)
 def hourly_trigger_function(myTimer: func.TimerRequest) -> None:
     if myTimer.past_due:
         logging.info("The timer is past due!")
@@ -144,7 +144,9 @@ def upload_to_data_lake(payload):
 
         symbol_prefix = payload.get("symbol", "UNKNOWN").lower().replace("usdt", "")
         timestamp_str = last_full_hour.strftime("%Y%m%d_%Hhr")
-        blob_name = f"{symbol_prefix}_hourly_data_{timestamp_str}.json"
+
+        # write into the raw_data directory in storage account
+        blob_name = f"raw_data/{symbol_prefix}_hourly_data_{timestamp_str}.json"
 
         blob_client = container_client.get_blob_client(blob_name)
         blob_client.upload_blob(data=json.dumps(payload), overwrite=True)
