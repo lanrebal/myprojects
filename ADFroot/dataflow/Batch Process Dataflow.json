@@ -1,0 +1,74 @@
+{
+	"name": "Batch Process Dataflow",
+	"properties": {
+		"type": "MappingDataFlow",
+		"typeProperties": {
+			"sources": [
+				{
+					"linkedService": {
+						"referenceName": "ls_cryptoassets_adls",
+						"type": "LinkedServiceReference"
+					},
+					"name": "Source",
+					"description": "Import data from ADLS"
+				}
+			],
+			"sinks": [
+				{
+					"dataset": {
+						"referenceName": "ds_database_batch_dev",
+						"type": "DatasetReference"
+					},
+					"name": "Sink",
+					"description": "Sink to Azure SQL Db"
+				}
+			],
+			"transformations": [
+				{
+					"name": "Select",
+					"description": "Select Transformation"
+				}
+			],
+			"scriptLines": [
+				"source(output(",
+				"          baseAsset as string,",
+				"          closePrice as double,",
+				"          closeTime as timestamp,",
+				"          highPrice as double,",
+				"          ignore as boolean,",
+				"          lowPrice as double,",
+				"          numberOfTrades as integer,",
+				"          openPrice as double,",
+				"          openTime as timestamp,",
+				"          quoteAsset as string,",
+				"          quoteAssetVolume as double,",
+				"          symbol as string,",
+				"          takerBuyBaseAssetVolume as double,",
+				"          takerBuyQuoteAssetVolume as double,",
+				"          volume as double",
+				"     ),",
+				"     useSchema: false,",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     ignoreNoFilesFound: false,",
+				"     moveFiles: ['raw_data','batch_processed'],",
+				"     format: 'json',",
+				"     fileSystem: 'my-assets',",
+				"     folderPath: 'raw_data',",
+				"     documentForm: 'documentPerLine') ~> Source",
+				"Source select(skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true) ~> Select",
+				"Select sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     deletable:false,",
+				"     insertable:true,",
+				"     updateable:false,",
+				"     upsertable:false,",
+				"     format: 'table',",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true,",
+				"     errorHandlingOption: 'stopOnFirstError') ~> Sink"
+			]
+		}
+	}
+}

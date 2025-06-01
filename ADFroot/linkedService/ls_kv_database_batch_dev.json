@@ -1,0 +1,25 @@
+{
+	"name": "ls_kv_database_batch_dev",
+	"type": "Microsoft.DataFactory/factories/linkedservices",
+	"properties": {
+		"annotations": [],
+		"type": "AzureSqlDatabase",
+		"typeProperties": {
+			"server": "tcp:server-data-dev.database.windows.net,1433",
+			"database": "database_batch_dev",
+			"encrypt": "True",
+			"trustServerCertificate": false,
+			"authenticationType": "SQL",
+			"userName": "server_dev_admin",
+			"password": {
+				"type": "AzureKeyVaultSecret",
+				"store": {
+					"referenceName": "ls_keyvault",
+					"type": "LinkedServiceReference"
+				},
+				"secretName": "kv-database-batch-dev"
+			},
+			"multipleActiveResultSets": "False"
+		}
+	}
+}

@@ -1,0 +1,9 @@
+{
+	"name": "adf-dev-batch-process",
+	"location": "canadacentral",
+	"identity": {
+		"type": "SystemAssigned",
+		"principalId": "2281ad91-d71a-455a-bc1e-ccea71128ab2",
+		"tenantId": "1dc001de-7e64-4e0c-8838-3c61506ab15c"
+	}
+}
