@@ -1,1 +1,105 @@
+on:
+  push:
+    branches:
+      - Azure_Data_Factory
+    paths:
+      - 'ADFroot/**'  # Monitoring changes in this directory
+
+permissions:
+      id-token: write
+      contents: read
+
+jobs:
+  build-dev:
+    runs-on: ubuntu-latest
+    steps:
+
+    - uses: actions/checkout@v3
+# Installs Node and the npm packages saved in your package.json file in the build
+    - name: Set Node.js version
+      run: echo "NODE_VERSION=18.x" >> $GITHUB_ENV
+
+    - name: Install Node.js
+      uses: actions/setup-node@v3
+      with:
+        node-version: ${{ env.NODE_VERSION }}
+
+    - name: Check Node.js version
+      run: node -v      
+       
+    - name: install ADF Utilities package
+      run: npm install
+      working-directory: ${{github.workspace}}/ADFroot/build  # (1) provide the folder location of the package.json file
+       
+# Validates all of the Data Factory resources in the repository. You'll get the same validation errors as when "Validate All" is selected.
+    - name: Validate
+      run: npm run build validate ${{github.workspace}}/ADFroot/ /subscriptions/cbb1bcae-b5b1-48ea-8df9-23833a80a57b/resourceGroups/rg_dev/providers/Microsoft.DataFactory/factories/adf-dev-batch-process # (2) The validate command needs the root folder location of your repository where all the objects are stored. And the 2nd parameter is the resourceID of the ADF instance
+      working-directory: ${{github.workspace}}/ADFroot/build
+ 
+
+    - name: Validate and Generate ARM template
+      run: npm run build export ${{github.workspace}}/ADFroot/ /subscriptions/cbb1bcae-b5b1-48ea-8df9-23833a80a57b/resourceGroups/rg_dev/providers/Microsoft.DataFactory/factories/adf-dev-batch-process "ExportedArmTemplate"  # (3) The build command, as validate, needs the root folder location of your repository where all the objects are stored. And the 2nd parameter is the resourceID of the ADF instance. The 3rd parameter is the exported ARM template artifact name
+      working-directory: ${{github.workspace}}/ADFroot/build
+
+
+# In order to leverage the artifact in another job, we need to upload it with the upload action
+    - name: upload artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: ExportedArmTemplate # (4) use the same artifact name you used in the previous export step
+        path: ${{github.workspace}}/ADFroot/build/ExportedArmTemplate
+
+
+  deploy-live:
+    needs: build-dev  # Ensures deploy-live runs after build-dev
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download a Build Artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: ExportedArmTemplate # (5) Artifact name
+
+      - name: Login via Az module
+        uses: azure/login@v2.1.1
+        with:
+          creds: '${{ secrets.CONNECT_TO_DEV }}'  # Live environment credentials
+          enable-AzPSSession: true
+
+      - name: data-factory-deploy-live
+        uses: Azure/data-factory-deploy-action@v1.2.0
+        with:
+          resourceGroupName: rg_dev     # Live Resource group
+          dataFactoryName: adf-dev-batch-process    # Live ADF name
+          armTemplateFile: ARMTemplateForFactory.json
+          armTemplateParametersFile: ARMTemplateParametersForFactory.json
+         
+
+  deploy-uat:
+    needs: deploy-live  # Ensures deploy-uat runs after deploy-live
+    runs-on: ubuntu-latest
+    steps:
+   
+ # download the previously uploaded artifact so we can leverage it later in the release job    
+      - name: Download a Build Artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: ExportedArmTemplate # (5) Artifact name
+
+
+      - name: Login via Az module
+        uses: azure/login@v2.1.1
+        with:
+          creds: '${{ secrets.CONNECT_TO_UAT }}'
+          enable-AzPSSession: true
+
+      - name: data-factory-deploy-uat
+        uses: Azure/data-factory-deploy-action@v1.2.0
+        with:
+          resourceGroupName: rg_uat    # (6) your target ADF resource group name
+          dataFactoryName: adf-uat-batch-process-uat    # (7) your target ADF name
+          armTemplateFile: ARMTemplateForFactory.json   # (8) ARM template file name ARMTemplateForFactory.json
+          armTemplateParametersFile: ARMTemplateParametersForFactory.json    # (9) ARM template parameters file name ARMTemplateParametersForFactory.json
+          additionalParameters: factoryName=adf-uat-batch-process-uat ls_cryptoassets_adls_properties_typeProperties_sasUri_secretName=kv-cryptoassets-adls-uat ls_keyvault_properties_typeProperties_baseUrl=https://kv-uat-apps.vault.azure.net/ ls_kv_database_batch_dev_properties_typeProperties_server=server-data-uat.database.windows.net ls_kv_database_batch_dev_properties_typeProperties_database=database_batch_uat ls_kv_database_batch_dev_properties_typeProperties_userName=server_uat_admin
+
+
 
