@@ -3,7 +3,7 @@
 	"properties": {
 		"activities": [
 			{
-				"name": "Batch Process1",
+				"name": "Batch Process",
 				"type": "ExecuteDataFlow",
 				"dependsOn": [],
 				"policy": {
