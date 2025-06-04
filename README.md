@@ -14,4 +14,26 @@ The process begins with an Hourly Trigger Function App that fetches data for sel
 
 1. Real-Time Processing: JSON payloads are sent to an Azure Service Bus topic. A Function App subscribed to this topic processes the payloads in near real time, transforms the data, and loads it into an Azure SQL Database table (dbo.CryptoAssetData) for real-time analytics.
 
-2. Batch Processing: The same data is also stored in Azure Data Lake Storage (ADLS) as raw JSON files. An Azure Data Factory (ADF) pipeline periodically processes these files and loads the results into a separate Azure SQL Database table (dbo.CryptoAssetDataBatch). Processed files are then archived into a batch_processed directory.
+2. Batch Processing: The same data is stored in Azure Data Lake Storage (ADLS) as raw JSON files. An Azure Data Factory (ADF) pipeline periodically processes these files and loads the results into a separate Azure SQL Database table (dbo.CryptoAssetDataBatch). Processed files are then archived into a batch_processed directory.
+
+**Hourly Trigger Function App**
+•	Initiates the pipeline by fetching hourly kline data for selected crypto assets.
+•	Assets Tracked: XRPUSDT, BTCUSDT, VETUSDT, DOGEUSDT.
+•	Executes every hour on the hour via CRON expression 0 0 * * * *.
+•	Makes HTTPS requests to the Binance API to retrieve 1-hour candlestick data.
+•	Dual Output Channels: 
+  - Azure Service Bus: Namespace: servicebus-my-dev, Topic: crypto-assets in JSON format.
+  - Azure Data Lake Storage: Storage Account: cryptoassets, Container: my-assets, Directory: raw_data in JSON format
+    
+**Data Processing Function App (Real-Time)**
+•	Triggered by messages published to Service Bus Namespace: servicebus-my-dev, Topic: crypto-assets, Subscription: my_assets.
+•	Payload Types: Single JSON dictionary or List of JSON dictionaries
+•	Applies transformations and Inserts rows into Azure SQL DB table - dbo.CryptoAssetData
+•	Enables real-time data access for dashboards and analytics tools.
+
+**Batch Processing with Azure Data Factory**
+•	ADF Pipeline Name: adf-dev-batch-process
+•	Input Source: Storage Account: cryptoassets, Container: my-assets, Directory: raw_data
+•	Reads JSON files from ADLS at 10PM MT daily, transforms data and Loads into Azure SQL DB table dbo.CryptoAssetDataBatch
+•	Post-Processing: Moves processed files to the batch processed directory and fails if no files are found
+•	Destination (Sink): dbo.CryptoAssetDataBatch table in Azure SQL DB.
