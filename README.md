@@ -6,7 +6,8 @@ This repository has branches that contain the code and the GitHub workflows for
 3. Azure_Data_Factory
 
 
-**End-to-End Data Flow Overview**/n
+**End-to-End Data Flow Overview**
+
 This architecture outlines an automated data pipeline that ingests, processes, and stores hourly candlestick (kline) trading data from the Binance API using Azure cloud services. The pipeline supports both real-time streaming and batch processing, ensuring flexible, scalable analytics for crypto asset monitoring.
 
 The process begins with an Hourly Trigger Function App that fetches data for selected crypto assets from the Binance API. The raw data is then dispatched simultaneously to two parallel processing paths:
