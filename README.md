@@ -20,7 +20,7 @@ The code has been grouped into three segments. At the start, the code prompt to 
 
 •	Segment 3 (Run Trading Data Analysis to load table - trading_data_analysis). This segment runs specific analysis for the user and load the result into - trading_data_analysis table. This segment can be used multiple types for different date/hour parameters.
 
-Segment 1:
+**Segment 1:**
 
 •	This checks if the database named ‘lanre_db’ exist in PostgreSQL, if it doesn’t exist the database is created (I provided my PostgreSQL connection details) 
 
@@ -30,7 +30,7 @@ Segment 1:
 
 •	Verify the data load by selecting the first 5 rows from the staging table. 
 
-Segment 2: 
+**Segment 2: **
 
 •	I created a dbt model (trading_hourly_data.sql) to be executed by the bash script. The model code is attached.
 
@@ -48,7 +48,7 @@ Segment 2:
 
 •	Verify the data load into (trading_hourly_data.sql) by selecting the first 5 rows from the staging table. 
 
-Segment 3:
+**Segment 3:**
 
 •	This segment runs specific analysis for the user and load the result into - trading_data_analysis table. This segment can be executed for analysis and the data from the latest analysis will replace existing data in the table. 
 
