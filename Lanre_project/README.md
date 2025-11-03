@@ -1,11 +1,16 @@
 This project contains DBT models that will calculate the following metrics:
+
 ● Gross Payment Volume
+
 ● Invoice Volume
+
 ● Accounts based on their stage:  Trials /  Subscribed / Churned
 
 
 **Requirements:**
+
 ● All amounts are standardized to USD
+
 ● All Dates are standardized to Mountain Time (MT)
 
 
