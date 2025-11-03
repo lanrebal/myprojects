@@ -1,0 +1,46 @@
+# models/trading_hourly_data.yml
+
+version: 2
+
+models:
+  - name: trading_hourly_data
+    description: "Data for trading hourly table"
+    columns:
+      # Ensure that day is not null
+      - name: day
+        tests:
+          - not_null
+
+      # Ensure that hour is not null 
+      - name: hour
+        tests:
+          - not_null          
+
+      # Ensure that open_price_for_hour and close_price_for_hour are not null and can't be negative
+      - name: open_price_for_hour
+        tests:
+          - not_null
+          - number_range:  
+              min_value: 0  # Prices can't be negative
+
+      - name: close_price_for_hour
+        tests:
+          - not_null
+          - number_range:  
+              min_value: 0  # Prices can't be negative
+
+      # first_time_for_hour and last_time_for_hour should be unique, it is a combination of date and hour
+      - name: first_time_for_hour
+        tests:
+          - not_null
+          - unique
+
+      - name: last_time_for_hour
+        tests:
+          - not_null
+          - unique
+
+      # Ensure that gain_or_loss_for_hour is not null
+      - name: gain_or_loss_for_hour
+        tests:
+          - not_null
