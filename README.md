@@ -13,8 +13,11 @@ The strategy is:
 **Details**
 Using the bash script named = all_segments.sh
 The code has been grouped into three segments. At the start, the code prompt to ask for the segment the user wants to run. You can choose to run only one of the segments or run all the segments. 
+
 •	Segment 1 (Create Database, Create Staging Table, Load CSV into Staging Table - trading_data_staging)
+
 •	Segment 2 (Run dbt Model to load table - trading_hourly_data)
+
 •	Segment 3 (Run Trading Data Analysis to load table - trading_data_analysis). This segment runs specific analysis for the user and load the result into - trading_data_analysis table. This segment can be used multiple types for different date/hour parameters.
 Segment 1:
 •	This checks if the database named ‘lanre_db’ exist in PostgreSQL, if it doesn’t exist the database is created (I provided my PostgreSQL connection details) 
