@@ -21,6 +21,7 @@ Segment 1:
 •	Create a staging table in the database named ‘trading_data_staging’ (if it doesn’t exist) 
 •	Load the csv data file downloaded from Kaggle into the staging table created. The data downloaded from Kaggle is named ‘half2_BTCUSDT_1s’ and saved in my root directory - 'C:/half2_BTCUSDT_1s.csv'
 •	Verify the data load by selecting the first 5 rows from the staging table. 
+
 Segment 2: 
 •	I created a dbt model (trading_hourly_data.sql) to be executed by the bash script. The model code is attached.
 •	The model is saved in my DBT project directory named - c/dbt_projects_Lanre/Lanre_project
