@@ -1,0 +1,42 @@
+version: 2
+
+models:
+  - name: dim_accounts
+    columns:
+      - name: id
+        tests:
+          - not_null
+          - unique
+
+  - name: dim_account_geo
+
+  - name: fct_account_lifecycle_events
+    columns:
+      - name: lifecycle_state
+        tests:
+          - accepted_values:
+              values: ["trial", "subscribed", "churned"]
+              severity: warn
+
+  - name: fct_invoice_line_items
+    columns:
+      - name: id
+        tests:
+          - not_null
+          - unique
+
+  - name: fct_invoices
+    columns:
+      - name: invoice_id
+        tests:
+          - not_null
+          - unique
+
+  - name: fct_payment_transactions
+    columns:
+      - name: transaction_id
+        tests:
+          - not_null
+          - unique
+
+

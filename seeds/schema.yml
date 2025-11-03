@@ -1,0 +1,25 @@
+version: 2
+
+seeds:
+  - name: stg_accounts
+
+  - name: stg_account_geo
+
+  - name: stg_account_lifecycle_events
+
+  - name: stg_invoices
+    columns:
+      - name: currency
+        tests:
+          - accepted_values:
+              values: ["AUD", "CAD", "USD", "GBP"]
+
+  - name: stg_invoice_line_items
+
+  - name: stg_payment_transactions
+    columns:
+      - name: currency
+        tests:
+          - accepted_values:
+              values: ["AUD", "CAD", "USD", "GBP"]
+
