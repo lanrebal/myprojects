@@ -1,3 +1,6 @@
+###   [ServiceBus] Message sent successfully to - servicebus-my-dev/crypto-assets/my_assets.
+###   [DataLake] Data uploaded successfully to - storage accounts/cryptoassets/my-assets/raw_data
+
 import logging
 import os
 import azure.functions as func
@@ -21,7 +24,7 @@ logging.basicConfig(level=logging.INFO)
 
 app = func.FunctionApp()
 
-@app.timer_trigger(schedule="0 0 * * * *", arg_name="myTimer", run_on_startup=False, use_monitor=False)
+@app.timer_trigger(schedule="0 0 * * * *", arg_name="myTimer", run_on_startup=True, use_monitor=False)    ###change to run_on_startup=True , to run on start up
 def hourly_trigger_function(myTimer: func.TimerRequest) -> None:
     if myTimer.past_due:
         logging.info("The timer is past due!")
@@ -53,6 +56,7 @@ CLIENT_SECRET = os.environ["CLIENT_SECRET"]
 # Service Bus
 NAMESPACE = os.environ.get("NAMESPACE")
 TOPIC_NAME = os.environ.get("TOPIC_NAME")
+SUBSCRIPTION_NAME = os.environ.get("SUBSCRIPTION_NAME")
 
 # Data Lake Storage
 STORAGE_ACCOUNT_NAME = "cryptoassets"
@@ -63,6 +67,15 @@ def to_utc_datetime(ms):
 
 def format_timestamp(ms):
     return to_utc_datetime(ms).strftime("%Y-%m-%d %H:%M:%S")
+
+
+def iso_utc_now():
+    return datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%S.%f")[:-3] + "Z"
+
+
+def log_info_component(component: str, message: str): 
+
+    logging.info(f"  [{component}] {message}")
 
 def split_symbol(symbol):
     if symbol.endswith("USDT"):
@@ -124,7 +137,10 @@ def send_to_service_bus(payload):
             with sender:
                 message = ServiceBusMessage(json.dumps(payload))
                 sender.send_messages(message)
-                logging.info(f"[ServiceBus] Message for {payload.get('symbol')} sent successfully.")
+          
+                topic = TOPIC_NAME
+                sub = SUBSCRIPTION_NAME if SUBSCRIPTION_NAME else "<no-subscription>"
+                log_info_component("ServiceBus", f"Message for {payload.get('symbol')} sent successfully to {topic} / {sub}.")
         return True
     except Exception as e:
         logging.error(f"[ServiceBus] Failed to send message for {payload.get('symbol')}: {e}")
@@ -150,7 +166,8 @@ def upload_to_data_lake(payload):
 
         blob_client = container_client.get_blob_client(blob_name)
         blob_client.upload_blob(data=json.dumps(payload), overwrite=True)
-        logging.info(f"[DataLake] Data for {payload.get('symbol')} uploaded successfully.")
+        # Log container/path (directory) where the blob was saved
+        log_info_component("DataLake", f"Data for {payload.get('symbol')} uploaded successfully to {CONTAINER_NAME}/{blob_name}")
         return True
     except Exception as e:
         logging.error(f"[DataLake] Failed to upload data for {payload.get('symbol')}: {e}")

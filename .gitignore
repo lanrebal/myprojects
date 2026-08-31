@@ -133,3 +133,18 @@ __blobstorage__
 __queuestorage__
 __azurite_db*__.json
 .python_packages
+
+# Local documentation and IDE settings
+instructions.txt
+.vscode/
+.venv-broken/
+
+# Azure credentials and deployment artifacts
+*.publishsettings
+*.PublishSettings
+*.publishprofile
+*.zip
+
+# Additional environment files
+.env.*
+!.env.example

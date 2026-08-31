@@ -1,0 +1,84 @@
+name: Deploy Hourly Trigger Function App
+
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: Environment to deploy
+        required: true
+        default: dev
+        type: choice
+        options:
+          - dev
+          - uat
+          - prod
+      confirm_production:
+        description: Confirm production deployment (required for prod only)
+        required: false
+        default: false
+        type: boolean
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    name: Validate deployment request
+    runs-on: ubuntu-latest
+    steps:
+      - name: Require explicit production confirmation
+        if: ${{ inputs.environment == 'prod' && !inputs.confirm_production }}
+        run: |
+          echo "Production deployment was not confirmed."
+          exit 1
+
+  deploy:
+    name: Deploy to ${{ inputs.environment }}
+    needs: validate
+    runs-on: ubuntu-latest
+    environment: ${{ inputs.environment }}
+    env:
+      PYTHON_VERSION: "3.11"
+    steps:
+      - name: Check out selected branch
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Install application dependencies
+        shell: bash
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install \
+            --target=".python_packages/lib/site-packages" \
+            -r requirements.txt
+
+      - name: Deploy development Function App
+        if: ${{ inputs.environment == 'dev' }}
+        uses: Azure/functions-action@v1
+        with:
+          app-name: dev-hourly-trigger-funct-app
+          package: .
+          publish-profile: ${{ secrets.AZURE_FUNCTIONAPP_PUBLISH_PROFILE_DEV }}
+          respect-funcignore: true
+
+      - name: Deploy UAT Function App
+        if: ${{ inputs.environment == 'uat' }}
+        uses: Azure/functions-action@v1
+        with:
+          app-name: uat-hourly-trigger-funct-app
+          package: .
+          publish-profile: ${{ secrets.AZURE_FUNCTIONAPP_PUBLISH_PROFILE_UAT }}
+          respect-funcignore: true
+
+      - name: Deploy production Function App
+        if: ${{ inputs.environment == 'prod' }}
+        uses: Azure/functions-action@v1
+        with:
+          app-name: prd-hourly-trigger-funct-app
+          package: .
+          publish-profile: ${{ secrets.AZURE_FUNCTIONAPP_PUBLISH_PROFILE_PROD }}
+          respect-funcignore: true
